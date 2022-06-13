@@ -1,0 +1,71 @@
+.App {
+  text-align: center;
+  width: 100vw;
+
+}
+
+.App-logo {
+  height: 10vmin;
+  display: flex;
+  pointer-events: none;
+  z-index: 1;
+  margin:auto;
+  margin-bottom: 10px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-main {
+  background-color: #010101;
+  min-height: 90vh;
+  color: #fff;
+  z-index: -10;
+}
+.App-header {
+  background-color: #010101;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  z-index: -10;
+}
+.App-footer {
+  background-color: #010101;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  z-index: 10;
+}
+
+.App-camunda {
+  height: 10vmin;
+  display: flex;
+  pointer-events: none;
+  z-index: 1;
+  position: fixed;
+  margin-bottom: 2px;
+}
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@import 'bootstrap/dist/css/bootstrap.css'
