@@ -14,7 +14,9 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import Store from 'electron-store';
 
+const store = new Store();
 const { ZBClient } = require('zeebe-node');
 
 let PROC_NAME = '';
@@ -91,6 +93,67 @@ async function startC8Process(event, processName) {
   return result;
 }
 
+function getAirtableCredentials() {
+  const airtableCredentials = store.get('airtable');
+  if (airtableCredentials) {
+    return airtableCredentials;
+  }
+  return {
+    token: '',
+    baseId: '',
+  };
+}
+
+function setAirtableCredentials(credentials: object) {
+  store.set('airtable', credentials);
+}
+ipcMain.handle('getOrbitToken', (event, arg) => {
+  const orbitCredentials = store.get('orbit');
+  if (orbitCredentials) {
+    return orbitCredentials.token
+  }
+  return '';
+});
+
+function getOrbitToken() {
+  const orbitCredentials = store.get('orbit');
+  if (orbitCredentials) {
+    return orbitCredentials.token;
+  }
+  return '';
+}
+ipcMain.handle('getStoreValue', (event, key) => {
+  console.log('getStoreValue: ', key);
+  const value = getStoreValue(key);
+  console.log('getStoreValue: ', value);
+  return value;
+  // return store.get(key);
+});
+
+function getStoreValue(key: string) {
+  console.log('key', key);
+  const value = store.get();
+  console.log(value);
+  return value;
+
+  // return store.get(key);
+}
+
+ipcMain.on('getOrbitCredentials', (event, arg) => {
+  const orbitCredentials = store.get('orbit');
+  if (orbitCredentials) {
+    event.reply(orbitCredentials);
+  }
+  event.reply({
+    token: '',
+    workplaceSlug: '',
+  });
+});
+
+function setOrbitCredentials(credentials: object) {
+  store.set('orbit', credentials);
+}
+
 function handleSetTitle(event, title) {
   const webContents = event.sender;
   const win = BrowserWindow.fromWebContents(webContents);
@@ -112,6 +175,18 @@ ipcMain.on('start-process', async (event, arg) => {
   console.log('Replying with fuck!');
   event.reply('start-process', 'fuck!');
 });
+
+ipcMain.on('fetchOrgs', async (event, arg) => {
+  console.log('fetchOrgs Args: ', arg);
+  const { clientId, clientSecret, clusterId } = arg;
+  console.log('clientID: ', clientId);
+  console.log('fetchOrgs', event);
+});
+
+async function fetchOrgs(message: string) {
+  console.log('Calling fetchOrgs');
+  console.log('clientID: ', message);
+}
 
 ipcMain.on('camunda-8', async (event, arg) => {
   const msgTemplate = (ready: string) => `${ready}`;
@@ -244,9 +319,12 @@ app
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
-    ipcMain.handle('check:check-C8-ready', checkC8Ready);
-    ipcMain.handle('start-C8-process', startC8Process);
     ipcMain.on('set-title', handleSetTitle);
+    ipcMain.handle('set-orbit-credentials', setOrbitCredentials);
+    ipcMain.handle('get-airtable-credentials', getAirtableCredentials);
+    ipcMain.handle('get-store-value', getStoreValue);
+    ipcMain.handle('get-orbit-token', getOrbitToken);
+    ipcMain.handle('fetch-orgs', fetchOrgs);
     // ipcMain.on('start-process', startC8Process);
     // ipcMain.handle('set:set-zeebe-credentials', setZeeBeCredentials);
   })

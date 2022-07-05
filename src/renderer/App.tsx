@@ -2,14 +2,21 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import {
+  Dropdown,
   FloatingLabel,
   FormControl,
+  FormLabel,
+  FormGroup,
+  Row,
+  Col,
   Tooltip,
   OverlayTrigger,
 } from 'react-bootstrap';
 import { useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Settings from './Settings';
+import Organizations from './Organizations';
 // import { ipcRenderer } from 'electron';
 // const { ipcRenderer } = require('electron');
 
@@ -20,15 +27,13 @@ function Hello() {
   const [zeeBeProcessName, setZeeBeProcessName] = useState('');
   const [zeeBeReady, setZeeBeReady] = useState(false);
   const [validated, setValidated] = useState(false);
+  const [showConfig, setShowConfig] = useState('none');
+  const [showOrgs, setShowOrgs] = useState('none');
+  const [showActivities, setShowActivities] = useState('none');
+  const [checked, setChecked] = useState(false);
+  const [service, setService] = useState('');
 
-  const clearForm = () => {
-    setZeeBeClusterID('');
-    setZeeBeClientSecret('');
-    setZeeBeClientID('');
-    setZeeBeProcessName('');
-    setValidated(false);
-    setZeeBeReady(false);
-  };
+  const clearForm = () => {};
 
   const startProcess = (e: Event) => {
     e.preventDefault();
@@ -69,111 +74,69 @@ function Hello() {
 
   return (
     <div className="App d-flex flex-column align-items-center">
-      <h1>Fill out your credentials!</h1>
+      <h1>Choose Data Activity</h1>
       <Form
-        noValidate
-        validated={validated}
-        className="container"
-        onSubmit={checkRead}
+        name="chooser"
+        className="align-items-center"
+        style={{ width: '90%' }}
       >
         <Form.Group>
-          {/* Name input */}
-          <OverlayTrigger
-            placement="auto"
-            delay={{ show: 250, hide: 400 }}
-            overlay={<Tooltip id="name-tooltip">Enter The Process ID</Tooltip>}
-          >
-            <FloatingLabel label="Process ID">
-              <Form.Control
-                required
-                name="processID"
-                id="processID"
-                value={zeeBeProcessName}
-                size="sm"
-                type="text"
-                onChange={(eventKey) => {
-                  setZeeBeProcessName(eventKey.target.value);
-                }}
-              />
-              <Form.Control.Feedback type="invalid">
-                You must supply a Process ID!
-              </Form.Control.Feedback>
-            </FloatingLabel>
-          </OverlayTrigger>
-        </Form.Group>
-        <p />
-        {/* Source input */}
-        {/* <Form.Group>
-          <OverlayTrigger
-            placement="auto"
-            delay={{ show: 250, hide: 400 }}
-            overlay={
-              <Tooltip id="source-tooltip">
-                Client ID is the ID used to authenticate with the Camunda
-                Platform 8 API.
-              </Tooltip>
-            }
-          >
-            <FloatingLabel label="Client ID">
-              <Form.Control
-                required
-                name="clientID"
-                id="clientID"
-                type="text"
-                size="sm"
-                value={zeeBeClientID}
-                onChange={(eventKey) => {
-                  setZeeBeClientID(eventKey.target.value);
-                }}
-              />
-              <Form.Control.Feedback type="invalid">
-                A Client ID is required!
-              </Form.Control.Feedback>
-            </FloatingLabel>
-          </OverlayTrigger>
-        </Form.Group>
-        <p />
-        <Form.Group>
-          <OverlayTrigger
-            placement="auto"
-            delay={{ show: 250, hide: 400 }}
-            overlay={
-              <Tooltip id="source-tooltip">
-                Client Secret is the secret used to authenticate with the
-                Camunda Platform 8 API.
-              </Tooltip>
-            }
-          >
-            <FloatingLabel label="Client Secret">
-              <FormControl
-                required
-                // disabled={linkOrigin === 'Pick a base target'}
-                id="target"
-                value={zeeBeClientSecret}
-                aria-label="Client Secret"
-                aria-describedby="target-tooltip"
-                onChange={(eventKey) => {
-                  setZeeBeClientSecret(eventKey.target.value);
-                }}
-              />
-            </FloatingLabel>
-          </OverlayTrigger>
-          <Form.Control.Feedback type="invalid">
-            The Client Secret for your Cluster is required!
-          </Form.Control.Feedback>
-        </Form.Group>
-        <p /> */}
-        <p />
-        <Form.Group>
-          <Button variant="primary" type="submit">
-            Check
-          </Button>
-          &nbsp;&nbsp;
-          <Button variant="outline-primary" type="reset" onClick={startProcess}>
-            Start
-          </Button>
+          <Row className="mb-3">
+            <Dropdown
+              onSelect={(eventKey) => {
+                const g = eventKey === 'organizations' ? 'block' : 'none';
+                const a = eventKey === 'activities' ? 'block' : 'none';
+                setShowOrgs(g);
+                setShowActivities(a);
+                setService(eventKey);
+              }}
+            >
+              <Dropdown.Toggle variant="success" id="dropdown-basic">
+                Select Service
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item key="organizations" eventKey="organizations">
+                  Organizations
+                </Dropdown.Item>
+                <Dropdown.Item key="activities" eventKey="activities">
+                  Activities
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Row>
         </Form.Group>
       </Form>
+      <div style={{ display: showOrgs }}>
+        <Organizations />
+      </div>
+      <p />
+      <Form.Group
+        as={Row}
+        className="mb-3 d-flex flex-column align-items-center"
+        controlId="formGridConfig"
+      >
+        <Col sm={12}>
+          <FormLabel>Show Configuration</FormLabel>
+          <Form.Check
+            checked={checked}
+            as="input"
+            name="show_config"
+            type="switch"
+            key="show_config"
+            id="custom-switch"
+            aria-label="Show Configuration"
+            onChange={(eventKey) => {
+              setChecked(eventKey.target.checked);
+              setShowConfig(eventKey.target.checked ? 'block' : 'none');
+            }}
+          />
+        </Col>
+      </Form.Group>
+
+      <div style={{ display: showConfig }}>
+        <p />
+        <Settings />
+      </div>
     </div>
   );
 }
