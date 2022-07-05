@@ -17,9 +17,7 @@ import { resolveHtmlPath } from './util';
 import Store from 'electron-store';
 
 const store = new Store();
-const { ZBClient } = require('zeebe-node');
 
-let PROC_NAME = '';
 const DEBUG = true;
 export default class AppUpdater {
   constructor() {
@@ -30,90 +28,83 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let zbcReady = false;
 
-const zbc = new ZBClient({
-  onReady: () => {
-    console.log(`onReady: Connected!`);
-    zbcReady = true;
-  },
-  onConnectionError: () => {
-    console.log(`Disconnected!`);
-    zbcReady = false;
-  },
-});
+// const zbc = new ZBClient({
+//   onReady: () => {
+//     console.log(`onReady: Connected!`);
+//     zbcReady = true;
+//   },
+//   onConnectionError: () => {
+//     console.log(`Disconnected!`);
+//     zbcReady = false;
+//   },
+// });
 export interface IpcRequest {
   responseChannel?: string;
 
-  params?: JSON;
+  params?: string;
 }
-async function checkC8Ready(event, message) {
-  console.log('checkC8Ready: ', message);
-  if(message !== '') {
-    PROC_NAME = message;
-  }
-  console.log('Got ready request, checking if C8 is ready');
-  console.log('checkC8Ready :', zbcReady);
-  const result = await zbc.topology();
-  console.log('Topology: ', result);
-  if (PROC_NAME !== '') {
-    (async () => {
-      zbc.createWorker(PROC_NAME, (job) => {
-        if (DEBUG) {
-          console.log('Handling job: ', job.key);
-        }
-        if (job.variables.count === undefined) {
-          job.variables.count = 0;
-        }
-        if (job.variables.add === undefined) {
-          job.variables.add = 0;
-        }
-        if (DEBUG) {
-          console.log('Incoming variables: ', job.variables);
-        }
-        job.variables.count = job.variables.count + job.variables.add;
-        if (DEBUG) {
-          console.log('Job Complete: ', job.variables);
-        }
-        job.complete(job.variables);
-      });
-    })();
-  }
-  return zbcReady;
-  // }
-  // return 'Not ready!';
-}
+// async function checkC8Ready(event, message) {
+//   console.log('checkC8Ready: ', message);
+//   if(message !== '') {
+//     PROC_NAME = message;
+//   }
+//   console.log('Got ready request, checking if C8 is ready');
+//   console.log('checkC8Ready :', zbcReady);
+//   const result = await zbc.topology();
+//   console.log('Topology: ', result);
+//   if (PROC_NAME !== '') {
+//     (async () => {
+//       zbc.createWorker(PROC_NAME, (job) => {
+//         if (DEBUG) {
+//           console.log('Handling job: ', job.key);
+//         }
+//         if (job.variables.count === undefined) {
+//           job.variables.count = 0;
+//         }
+//         if (job.variables.add === undefined) {
+//           job.variables.add = 0;
+//         }
+//         if (DEBUG) {
+//           console.log('Incoming variables: ', job.variables);
+//         }
+//         job.variables.count = job.variables.count + job.variables.add;
+//         if (DEBUG) {
+//           console.log('Job Complete: ', job.variables);
+//         }
+//         job.complete(job.variables);
+//       });
+//     })();
+//   }
+//   return zbcReady;
+//   // }
+//   // return 'Not ready!';
+// }
 
-async function startC8Process(event, processName) {
-  console.log('startC8Process: ', processName.zeeBeProcessName);
-  console.log('Got start process request');
-  console.log('checkC8Ready :', zbcReady);
-  const result = await zbc.createProcessInstance(processName.zeeBeProcessName);
-  console.log('StartProcess: ', result);
-  return result;
-}
+// async function startC8Process(event, processName) {
+//   console.log('startC8Process: ', processName.zeeBeProcessName);
+//   console.log('Got start process request');
+//   console.log('checkC8Ready :', zbcReady);
+//   const result = await zbc.createProcessInstance(processName.zeeBeProcessName);
+//   console.log('StartProcess: ', result);
+//   return result;
+// }
 
-function getAirtableCredentials() {
-  const airtableCredentials = store.get('airtable');
-  if (airtableCredentials) {
-    return airtableCredentials;
-  }
-  return {
-    token: '',
-    baseId: '',
-  };
-}
+function getCredentials(...args: any[]) {
+  console.log('args', args[1]);
+  const value = store.get();
+  console.log(value);
+  return value;
 
-function setAirtableCredentials(credentials: object) {
-  store.set('airtable', credentials);
+  // return store.get(key);
 }
-ipcMain.handle('getOrbitToken', (event, arg) => {
-  const orbitCredentials = store.get('orbit');
-  if (orbitCredentials) {
-    return orbitCredentials.token
-  }
-  return '';
-});
+function setCredentials(...credentials: any[]) {
+  console.log('Setting credentials', credentials[1]);
+  store.set('orbit.token', credentials[1].orbit.token);
+  store.set('orbit.workplaceSlug', credentials[1].orbit.workplaceSlug);
+  store.set('airtable.token', credentials[1].airtable.token);
+  store.set('airtable.baseID', credentials[1].airtable.baseID);
+}
 
 function getOrbitToken() {
   const orbitCredentials = store.get('orbit');
@@ -124,22 +115,27 @@ function getOrbitToken() {
 }
 ipcMain.handle('getStoreValue', (event, key) => {
   console.log('getStoreValue: ', key);
-  const value = getStoreValue(key);
+  const value = store.get(key);
   console.log('getStoreValue: ', value);
   return value;
   // return store.get(key);
 });
-
-function getStoreValue(key: string) {
-  console.log('key', key);
-  const value = store.get();
+ipcMain.handle('get-store-value', (event, key) => {
+  console.log('get-store-value: ', key);
+  console.log('get-store-value: ', store.get(key));
+  const foo = store.get(key);
+  return foo;
+});
+function getStoreValue(...args: any[]) {
+  console.log('args', args[1]);
+  const value = store.get(args[1]);
   console.log(value);
   return value;
 
   // return store.get(key);
 }
 
-ipcMain.on('getOrbitCredentials', (event, arg) => {
+ipcMain.on('getCredentials', (event, arg) => {
   const orbitCredentials = store.get('orbit');
   if (orbitCredentials) {
     event.reply(orbitCredentials);
@@ -320,9 +316,11 @@ app
       if (mainWindow === null) createWindow();
     });
     ipcMain.on('set-title', handleSetTitle);
-    ipcMain.handle('set-orbit-credentials', setOrbitCredentials);
-    ipcMain.handle('get-airtable-credentials', getAirtableCredentials);
-    ipcMain.handle('get-store-value', getStoreValue);
+    ipcMain.handle('set-credentials', setCredentials);
+    ipcMain.handle('get-credentials', getCredentials);
+    // ipcMain.handle('get-store-value', getStoreValue);
+    // ipcMain.handle('set-store-value', setStoreValue);
+
     ipcMain.handle('get-orbit-token', getOrbitToken);
     ipcMain.handle('fetch-orgs', fetchOrgs);
     // ipcMain.on('start-process', startC8Process);

@@ -18,20 +18,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   //       ipcRenderer.once(channel, (_event, ...args) => func(...args));
   //     },
   //   },
-  getStoreValue: (key: string) =>
-    ipcRenderer.invoke('get-store-value', key),
+  // getStoreValue: (key: string) =>
+  //   ipcRenderer.invoke('get-store-value', key),
   checkC8Ready: (message: string) =>
     ipcRenderer.invoke('check:check-C8-ready', message),
   startC8Process: (scriptName: string) =>
     ipcRenderer.invoke('start-C8-process', scriptName),
   setTitle: () => ipcRenderer.send('set-title'),
-  setAirtableCredentials: (credentials: object) =>
-    ipcRenderer.invoke('set-airtable-credentials', credentials),
-  getAirtableCredentials: () => ipcRenderer.invoke('get-airtable-credentials'),
-  setOrbitCredentials: (credentials: object) =>
-    ipcRenderer.invoke('set-orbit-credentials', credentials),
-  getOrbitCredentials: () => ipcRenderer.invoke('get-orbit-credentials'),
+  setCredentials: (credentials: object) =>
+    ipcRenderer.invoke('set-credentials', credentials),
+  getCredentials: () => ipcRenderer.invoke('get-credentials'),
   fetchOrgs: (message: string) => ipcRenderer.invoke('fetch-orgs', message),
+  getStoreValue: (event: typeof event, key: string) =>
+    ipcRenderer.invoke('get-store-value', key),
+
 
   // startProcess: (proc) => ipcRenderer.send('start-process', proc),
   // setZeeBeCredentials: () => return ipcRenderer.invoke('set-zeebe-credentials'),
